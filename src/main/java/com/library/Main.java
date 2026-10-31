@@ -11,18 +11,25 @@ public class Main {
         System.out.println("Starting library");
         LocalDate today = LocalDate.of(2026, 10, 30);
 
-        Loan overdueLoan = new Loan(
-                "1242345", "123",
-                LocalDate.of(2026, 10, 10), LocalDate.of(2026, 10 ,24));
-        System.out.println("Loan 1 - Active, past due:  " + overdueLoan.isOverdue(today));
+//        Book book2 = new Book("123465", "Harry Potter", "J.K. Rowling", 1987);
+//
+//        Member member = new Member("123", "Jan", "Kowalski", "jankowalski@gmail.com");
+//
+//        System.out.println("Book 2: " + book2);
+//        System.out.println("Member 1: " + member);
 
-        Loan futureLoan = new Loan(
-                "1242345", "123",
-                LocalDate.of(2026, 10, 25), LocalDate.of(2026, 11 ,8));
-        System.out.println("Loan 2 - Active, not due yet: " + futureLoan.isOverdue(today));
-
-        overdueLoan.makeReturnDate(LocalDate.of(2026, 10, 28));
-        System.out.println("Loan 3 - Returned:  " + overdueLoan.isOverdue(today));
+//        Loan overdueLoan = new Loan(
+//                "1242345", "123",
+//                LocalDate.of(2026, 10, 10), LocalDate.of(2026, 10 ,24));
+//        System.out.println("Loan 1 - Active, past due:  " + overdueLoan.isOverdue(today));
+//
+//        Loan futureLoan = new Loan(
+//                "1242345", "123",
+//                LocalDate.of(2026, 10, 25), LocalDate.of(2026, 11 ,8));
+//        System.out.println("Loan 2 - Active, not due yet: " + futureLoan.isOverdue(today));
+//
+//        overdueLoan.makeReturnDate(LocalDate.of(2026, 10, 28));
+//        System.out.println("Loan 3 - Returned:  " + overdueLoan.isOverdue(today));
 
     }
 }
