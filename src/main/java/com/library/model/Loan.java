@@ -28,7 +28,7 @@ public class Loan {
         return isActive() && today.isAfter(dueDate);
     }
 
-    public void makeReturnDate(LocalDate date) {
+    public void makeReturn(LocalDate date) {
         if (!isActive()) {
             throw new IllegalStateException("Loan is already returned");
         }
