@@ -33,6 +33,12 @@ public class LibraryService {
         this.memberRepository = memberRepository;
     }
 
+    /*
+     First, you check whether the objects exist at all, then the state rules (availability), and finally
+     the limit rules. This ensures that the user sees the most basic error first,
+     and the messages are predictable.
+     */
+
     public void addBook(Book book) {
         Objects.requireNonNull(book, "Book must not be null");
 
@@ -57,12 +63,12 @@ public class LibraryService {
         return bookRepository.findByIsbn(isbn).orElseThrow(() -> new BookNotFoundException(isbn));
     }
 
-    public void getAllBooks() {
-        List<Book> books = bookRepository.findAll();
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
     }
 
-    public void getAllMembers() {
-        List<Member> members = memberRepository.findAll();
+    public List<Member> getAllMembers() {
+        return memberRepository.findAll();
     }
 
     public List<Book> searchBooks(String phrase) {
@@ -91,7 +97,6 @@ public class LibraryService {
     }
 
     public Loan borrowBook(String isbn, String memberId) {
-
         findBook(isbn);                 // throw BookNotFoundException
         getMemberOrThrow(memberId);     // throw MemberNotFoundException
 
@@ -110,7 +115,6 @@ public class LibraryService {
     }
 
     public Loan returnBook(String isbn) {
-
         findBook(isbn);
 
         Loan loan = loanRepository.findActiveByIsbn(isbn)
