@@ -40,8 +40,9 @@ public class ConsoleUI {
                     default -> System.out.println("Unknown option. Try again.");
                 }
             } catch (LibraryException | IllegalArgumentException e) {
-                System.out.println("Error: " + e.getMessage() + "\n");
+                System.out.println("Error: " + e.getMessage());
             }
+            System.out.println();
         }
         System.out.println("Goodbye!");
     }
@@ -67,7 +68,7 @@ public class ConsoleUI {
         Book book = new Book(isbn, title, author, publicationYear);
 
         libraryService.addBook(book);
-        return "Book added successfully!" + "\n";
+        return "Book added successfully!";
     }
 
     private void listAllBooks() {
@@ -87,7 +88,7 @@ public class ConsoleUI {
         Member member = new Member(id, firstName, lastName, email);
 
         libraryService.registerMember(member);
-        return "Member registered successfully!" + "\n";
+        return "Member registered successfully!";
     }
 
     private void listAllMembers() {
@@ -101,7 +102,7 @@ public class ConsoleUI {
         Loan loan = libraryService.borrowBook(isbn, memberId);
         Book book = libraryService.findBook(isbn);
 
-        return book.title() + " borrowed successfully! " + "Due date: " + loan.getDueDate() + "\n";
+        return book.title() + " borrowed successfully! " + "Due date: " + loan.getDueDate();
     }
 
     private String returnBook() {
@@ -109,7 +110,7 @@ public class ConsoleUI {
         libraryService.returnBook(isbn);
 
         Book book = libraryService.findBook(isbn);
-        return book.title() + " returned successfully." + "\n";
+        return book.title() + " returned successfully.";
     }
 
     private void showActiveLoansForMember() {
@@ -123,14 +124,13 @@ public class ConsoleUI {
 
     private void displayMembers(List<Member> allMembers) {
         if (allMembers.isEmpty()) {
-            System.out.println("No members found." + "\n");
+            System.out.println("No members found.");
             return;
         }
 
         for (Member member : allMembers) {
             System.out.println(formatMember(member));
         }
-        System.out.println("\n");
     }
 
     private String formatMember(Member member) {
@@ -140,7 +140,7 @@ public class ConsoleUI {
 
     private void displayBooks(List<Book> books) {
         if (books.isEmpty()) {
-            System.out.println("No books found." + "\n");
+            System.out.println("No books found.");
             return;
         }
 
@@ -148,7 +148,6 @@ public class ConsoleUI {
             boolean available = libraryService.isBookAvailable(book.isbn());
             System.out.println(formatBook(book, available));
         }
-        System.out.println("\n");
     }
 
     private String formatBook(Book book, boolean available) {
@@ -160,14 +159,13 @@ public class ConsoleUI {
 
     private void displayLoans(List<Loan> loans) {
         if (loans.isEmpty()) {
-            System.out.println("No loans found." + "\n");
+            System.out.println("No loans found.");
             return;
         }
 
         for (Loan loan : loans) {
             System.out.println(formatLoan(loan));
         }
-        System.out.println("\n");
     }
 
     private String formatLoan(Loan loan) {

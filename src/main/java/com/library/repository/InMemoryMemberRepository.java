@@ -18,7 +18,7 @@ public class InMemoryMemberRepository implements MemberRepository {
 
     @Override
     public Optional<Member> findById(String id) {
-        return Optional.of(members.get(id));
+        return Optional.ofNullable(members.get(id));
     }
 
     @Override
