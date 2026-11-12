@@ -80,7 +80,7 @@ public class LoanTest {
     }
 
     @Test
-    void markReturned_whenReturnedBeforeDueDate_setsReturnDateAndDeactivatesLoan() {
+    void markReturn_whenReturnedBeforeDueDate_setsReturnDateAndDeactivatesLoan() {
         LocalDate returnDate = LocalDate.of(2000, 1, 20);
         Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
 
@@ -91,7 +91,7 @@ public class LoanTest {
     }
 
     @Test
-    void markReturned_whenReturnedOnLoanDate_marksLoanAsReturned() {
+    void markReturn_whenReturnedOnLoanDate_marksLoanAsReturned() {
         Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
         loan.makeReturn(LocalDate.of(2000, 1, 10));
 
@@ -100,7 +100,7 @@ public class LoanTest {
     }
 
     @Test
-    void markReturned_whenAlreadyReturned_throwsIllegalStateException() {
+    void markReturn_whenAlreadyReturned_throwsIllegalStateException() {
         Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
         loan.makeReturn(LOAN_DATE.plusDays(1));
 
@@ -108,14 +108,14 @@ public class LoanTest {
     }
 
     @Test
-    void markReturned_whenDateIsNull_throwsIllegalArgumentException() {
+    void markReturn_whenDateIsNull_throwsIllegalArgumentException() {
         Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
 
         assertThrows(IllegalArgumentException.class, () -> loan.makeReturn(null));
     }
 
     @Test
-    void markReturned_whenDateIsBeforeLoanDate_throwsIllegalArgumentException() {
+    void markReturn_whenDateIsBeforeLoanDate_throwsIllegalArgumentException() {
         Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
 
         assertThrows(IllegalArgumentException.class, () -> loan.makeReturn(LOAN_DATE.minusDays(1)));
