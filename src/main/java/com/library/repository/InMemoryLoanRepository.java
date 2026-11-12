@@ -65,6 +65,6 @@ public class InMemoryLoanRepository implements LoanRepository {
                 activeLoans.add(loan);
             }
         }
-        return activeLoans;
+        return List.copyOf(activeLoans);
     }
 }
