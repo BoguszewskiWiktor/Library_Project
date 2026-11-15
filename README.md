@@ -1,87 +1,102 @@
 # Library Management System
 
-A console application for managing a small library, written in plain Java as a learning project. It lets a librarian manage books and members, lend and return books, search the catalogue and see overdue loans.
+A console application for managing a small library: books, members and loans.
+Written in plain Java as a learning project, with a focus on clean layered
+architecture, validation and unit testing.
 
-The project is built step by step, with a clear separation into layers and no frameworks.
-
-## Features
-
-- Add books and list the whole catalogue with availability status
-- Search books by title or author (case-insensitive, partial match)
-- Register library members and list them
-- Borrow and return books
-- Show a member's active loans
-- Show all overdue loans
-
-### Menu
-
-```
-1. Add Book
-2. List all books
-3. Search books
-4. Register member
-5. List members
-6. Borrow book
-7. Return book
-8. Show member's active loans
-9. Show overdue loans
-0. Exit
-```
-
-## Business rules
-
-- A book is identified by its ISBN, a member by a member ID. Both must be unique.
-- A loan lasts 14 days.
-- A member can have at most 5 active loans at the same time.
-- A book is available when there is no active loan for it. Availability is calculated from loans and is not stored in the book.
-- A loan is overdue when it is still active and its due date has passed.
-- Invalid input (blank values, malformed numbers, unknown ISBN or member) results in a clear error message, and the program returns to the menu.
+**Current version: v0.2** (console app with in-memory storage and JUnit tests)
 
 ## Tech stack
 
 - Java 21
 - Maven
-- Plain Java, no frameworks
+- JUnit 5 (unit tests)
+- No frameworks yet (objects are wired manually in `Main`)
+
+## Features
+
+- Add books and register members
+- Find a book by ISBN and search books by title or author
+  (case-insensitive, surrounding spaces ignored)
+- Check whether a book is available
+- Borrow and return books
+- List active loans and full loan history of a member
+- List overdue loans
+- List all books and all members
+- Interactive console menu with readable error messages
+
+## Business rules
+
+- One ISBN identifies exactly one copy of a book
+- A loan lasts 14 days
+- A member can have at most 5 active loans (returned loans do not count)
+- A book can be borrowed only if it has no active loan
+- ISBN and member id must be unique
+- Required fields cannot be null or blank; the email must contain `@`
+- A loan is overdue when it is still active and the due date has passed
 
 ## Architecture
 
-The code is split into layers. Each layer depends only on the one below it:
+```
+model        Book, Member (records with validation), Loan, Validation helpers
+exception    LibraryException and its subclasses (unchecked)
+repository   BookRepository, MemberRepository, LoanRepository (interfaces)
+             InMemory... implementations
+service      LibraryService - all business rules
+ui           ConsoleUI, ConsoleInput, DemoData (optional sample data)
+Main         assembles the objects and starts the UI
+```
+
+Dependencies point one way: `ui` -> `service` -> `repository` -> `model`.
+The service depends only on repository interfaces, so the storage can be
+replaced (file, database) without changing business logic.
+
+Design decisions:
+
+- `Book` and `Member` are immutable records; `Loan` is a class because only
+  its return date changes.
+- Book availability is derived from active loans, not stored on the book.
+- Repositories never return `null` (they use `Optional` and empty lists) and
+  return unmodifiable lists.
+- Business errors are reported with custom unchecked exceptions
+  (`BookNotFoundException`, `BookAlreadyExistsException`,
+  `BookNotAvailableException`, `MemberNotFoundException`,
+  `MemberAlreadyExistsException`, `LoanNotFoundException`,
+  `LoanLimitExceededException`, ...). The UI catches them and prints a message.
+
+## Tests
+
+Unit tests are written with JUnit 5 and cover:
+
+- `Loan`, `Book`, `Member`: construction, validation, `isActive`, `isOverdue`,
+  `makeReturn`
+- `InMemoryBookRepository`, `InMemoryMemberRepository`,
+  `InMemoryLoanRepository`: saving, searching, filtering active loans,
+  `update`, unmodifiable results
+- `LibraryService`: registration, search, availability, borrowing (loan limit,
+  returned loans, unavailable books), returning, reports, error cases
+
+Tests use fresh in-memory repositories for every test and fixed dates, so
+they are deterministic.
+
+Run all tests (requires JDK 21):
 
 ```
-ui  ->  service  ->  repository (interfaces)
-                         ^
-                   implementations (in-memory)
+mvn test
 ```
 
-| Package | Responsibility |
-|---|---|
-| `model` | Data classes: `Book` and `Member` (records), `Loan` |
-| `exception` | Custom business exceptions based on `LibraryException` |
-| `repository` | Repository interfaces and their in-memory implementations |
-| `service` | Business logic and rules (`LibraryService`) |
-| `ui` | Console menu and input handling (`ConsoleUI`, `ConsoleInput`) |
+## Running the application
 
-Key design decisions:
+1. Open the project in IntelliJ IDEA (JDK 21).
+2. Run the `Main` class.
+3. Use the numbered menu in the console.
 
-- Repositories are used through interfaces, so the storage can be replaced (file, database) without changing the service or the UI.
-- Dependencies are passed through constructors and assembled manually in `Main`.
-- Business rules live only in the service. The UI only reads input, calls the service and displays results.
-- Data is validated in model constructors, and business errors are reported with custom exceptions.
-
-## Getting started
-
-1. Clone the repository.
-2. Open the project in IntelliJ IDEA (JDK 21).
-3. Run the `Main` class (`com.library.Main`).
-
-The application starts with an empty library. To start with sample books, members and loans (including an overdue one), uncomment the `DemoData` line in `Main`.
-
-## Status
-
-Version `v0.1`: the console application works end to end. Data is stored in memory only and is lost when the program exits.
+Optional sample data can be loaded with `DemoData` (see `Main`).
 
 ## Roadmap
 
-- Unit tests with JUnit
-- Optional file persistence
-- Database persistence with JDBC
+- [x] v0.1 - console application with in-memory storage, manual test scenarios
+- [x] v0.2 - unit tests with JUnit 5
+- [ ] Optional: file persistence
+- [ ] JDBC database persistence
+- [ ] Later: Spring, logging, additional test libraries
