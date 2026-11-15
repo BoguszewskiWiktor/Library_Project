@@ -122,7 +122,6 @@ public class LibraryService {
         loan.makeReturn(LocalDate.now());
         loanRepository.update(loan);
         return loan;
-
     }
 
     public List<Loan> getActiveLoansForMember(String memberId) {
