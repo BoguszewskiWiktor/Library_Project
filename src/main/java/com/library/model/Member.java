@@ -1,5 +1,7 @@
 package com.library.model;
 
+import com.library.util.Validation;
+
 public record Member(String id, String firstName, String lastName, String email) {
 
     public Member {

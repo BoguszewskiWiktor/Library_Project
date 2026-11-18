@@ -1,5 +1,7 @@
 package com.library.model;
 
+import com.library.util.Validation;
+
 import java.time.LocalDate;
 
 public class Loan {

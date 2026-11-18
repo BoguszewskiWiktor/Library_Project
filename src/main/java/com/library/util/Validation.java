@@ -1,4 +1,4 @@
-package com.library.model;
+package com.library.util;
 
 import java.time.LocalDate;
 
@@ -6,14 +6,14 @@ public class Validation {
 
     private Validation() {}
 
-    static String requireNotBlank(String value, String fieldName) {
+    public static String requireNotBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank");
         }
         return value.strip();
     }
 
-    static LocalDate requireNotNull(LocalDate value, String fieldName) {
+    public static LocalDate requireNotNull(LocalDate value, String fieldName) {
         if (value == null) {
             throw new IllegalArgumentException(fieldName + " must not be blank");
         }
