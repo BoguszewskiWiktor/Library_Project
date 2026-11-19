@@ -1,6 +1,8 @@
-package com.library.repository;
+package com.library.repository.inMemory;
 
 import com.library.model.Book;
+import com.library.repository.BookRepository;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

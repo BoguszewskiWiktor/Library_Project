@@ -1,6 +1,7 @@
-package com.library.repository;
+package com.library.repository.inMemory;
 
 import com.library.model.Loan;
+import com.library.repository.LoanRepository;
 
 import java.util.ArrayList;
 import java.util.List;

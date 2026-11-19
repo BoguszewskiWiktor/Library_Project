@@ -1,6 +1,7 @@
 package com.library.repository;
 
 import com.library.model.Member;
+import com.library.repository.inMemory.InMemoryMemberRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
