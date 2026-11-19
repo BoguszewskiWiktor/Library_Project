@@ -1,27 +1,30 @@
 package com.library.repository.jdbc;
 
-import com.library.config.DatabaseConfig;
+import com.library.config.ConnectionFactory;
 import com.library.exception.StorageException;
 import com.library.model.Book;
 import com.library.repository.BookRepository;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class JdbcBookRepository implements BookRepository {
 
-    private final DatabaseConfig config;
+    private final ConnectionFactory connectionFactory;
 
-    public JdbcBookRepository(DatabaseConfig config) {
-        this.config = config;
+    public JdbcBookRepository(ConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
     }
 
     @Override
     public void save(Book book) {
         String query = "INSERT INTO books (isbn, title, author, publication_year) VALUES (?, ?, ?, ?)";
-        try (Connection connection = getConnection();
+        try (Connection connection = connectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
             statement.setString(1, book.isbn());
             statement.setString(2, book.title());
@@ -36,11 +39,11 @@ public class JdbcBookRepository implements BookRepository {
     @Override
     public Optional<Book> findByIsbn(String isbn) {
         String query = "SELECT isbn, title, author, publication_year FROM books WHERE isbn = ?";
-        try (Connection connection = getConnection();
+        try (Connection connection = connectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, isbn);
-            try (ResultSet rs = statement.executeQuery()){
+            try (ResultSet rs = statement.executeQuery()) {
                 if (rs.next()) {
                     return Optional.of(mapBook(rs));
                 }
@@ -55,7 +58,7 @@ public class JdbcBookRepository implements BookRepository {
     @Override
     public boolean existsByIsbn(String isbn) {
         String query = "SELECT 1 FROM books WHERE isbn = ?";
-        try (Connection connection = getConnection();
+        try (Connection connection = connectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
 
             statement.setString(1, isbn);
@@ -72,7 +75,7 @@ public class JdbcBookRepository implements BookRepository {
     public List<Book> findAll() {
         List<Book> books = new ArrayList<>();
         String query = "SELECT isbn, title, author, publication_year FROM books ORDER BY isbn";
-        try (Connection connection = getConnection();
+        try (Connection connection = connectionFactory.getConnection();
              PreparedStatement statement = connection.prepareStatement(query);
              ResultSet rs = statement.executeQuery()) {
 
@@ -84,10 +87,6 @@ public class JdbcBookRepository implements BookRepository {
         } catch (SQLException e) {
             throw new StorageException("Cannot read books. ", e);
         }
-    }
-
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(config.url(), config.username(), config.password());
     }
 
     private Book mapBook(ResultSet rs) throws SQLException {
