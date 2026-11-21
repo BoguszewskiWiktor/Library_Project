@@ -35,7 +35,8 @@ public class ConsoleUI {
                     case 6 -> System.out.println(borrowBook());
                     case 7 -> System.out.println(returnBook());
                     case 8 -> showActiveLoansForMember();
-                    case 9 -> showOverdueLoans();
+                    case 9 -> showLoanHistoryForMember();
+                    case 10 -> showOverdueLoans();
                     case 0 -> running = false;
                     default -> System.out.println("Unknown option. Try again.");
                 }
@@ -56,7 +57,8 @@ public class ConsoleUI {
         System.out.println("6. Borrow book");
         System.out.println("7. Return book");
         System.out.println("8. Show member's active loans");
-        System.out.println("9. Show overdue loans");
+        System.out.println("9. Show member's loan history");
+        System.out.println("10. Show overdue loans");
         System.out.println("0. Exit");
     }
 
@@ -118,6 +120,11 @@ public class ConsoleUI {
         displayLoans(libraryService.getActiveLoansForMember(memberId));
     }
 
+    private void showLoanHistoryForMember() {
+        String memberId = consoleInput.readNonBlankString("Please enter your member ID: ");
+        displayLoans(libraryService.getLoanHistoryForMember(memberId));
+    }
+
     private void showOverdueLoans() {
         displayLoans(libraryService.getOverdueLoans());
     }
@@ -169,8 +176,13 @@ public class ConsoleUI {
     }
 
     private String formatLoan(Loan loan) {
-        return String.format("%s, ISBN: %s, MemberID: %s, Loan Date: %s, Due Date: %s",
+        String text = String.format("%s, ISBN: %s, MemberID: %s, Loan Date: %s, Due Date: %s",
                 libraryService.findBook(loan.getIsbn()).title(), loan.getIsbn(),
                 loan.getMemberId(), loan.getLoanDate(), loan.getDueDate());
+
+        if (loan.getReturnDate() != null) {
+            text += String.format(", Returned: %s", loan.getReturnDate());
+        }
+        return text;
     }
 }

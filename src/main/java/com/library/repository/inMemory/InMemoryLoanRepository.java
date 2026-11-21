@@ -53,7 +53,6 @@ public class InMemoryLoanRepository implements LoanRepository {
                 memberLoans.add(loan);
             }
         }
-
         return memberLoans;
     }
 

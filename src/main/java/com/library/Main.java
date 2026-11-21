@@ -8,6 +8,7 @@ import com.library.repository.MemberRepository;
 import com.library.repository.inMemory.InMemoryLoanRepository;
 import com.library.repository.inMemory.InMemoryMemberRepository;
 import com.library.repository.jdbc.JdbcBookRepository;
+import com.library.repository.jdbc.JdbcLoanRepository;
 import com.library.repository.jdbc.JdbcMemberRepository;
 import com.library.service.LibraryService;
 import com.library.ui.ConsoleInput;
@@ -23,16 +24,20 @@ public class Main {
 
 //        BookRepository bookRepository = new InMemoryBookRepository();
 //        MemberRepository memberRepository = new InMemoryMemberRepository();
+        ConsoleUI consoleUI = getConsoleUI(connectionFactory);
+
+//        new DemoData(main.bookRepository, main.memberRepository,  main.loanRepository).load();
+        consoleUI.run();
+    }
+
+    private static ConsoleUI getConsoleUI(ConnectionFactory connectionFactory) {
         BookRepository bookRepository = new JdbcBookRepository(connectionFactory);
         MemberRepository memberRepository = new JdbcMemberRepository(connectionFactory);
-        LoanRepository loanRepository = new InMemoryLoanRepository();
+        LoanRepository loanRepository = new JdbcLoanRepository(connectionFactory);
 
         LibraryService libraryService = new LibraryService(bookRepository, loanRepository, memberRepository);
 
         ConsoleInput consoleInput = new ConsoleInput(new Scanner(System.in));
-        ConsoleUI consoleUI = new ConsoleUI(libraryService, consoleInput);
-
-//        new DemoData(main.bookRepository, main.memberRepository,  main.loanRepository).load();
-        consoleUI.run();
+        return new ConsoleUI(libraryService, consoleInput);
     }
 }
