@@ -5,7 +5,7 @@ Written in plain Java as a learning project, with a focus on clean layered
 architecture, validation, automated testing and persistence with JDBC and
 PostgreSQL.
 
-**Current version: v0.3** (console app with PostgreSQL persistence, unit and integration tests)
+**Current version: v0.4** (console app with PostgreSQL persistence, unit and integration tests)
 
 ## Tech stack
 
@@ -175,5 +175,6 @@ Both commands require JDK 21.
 
 - [x] v0.1 - console application with in-memory storage, manual test scenarios
 - [x] v0.2 - unit tests with JUnit 5
-- [x] v0.3 - PostgreSQL persistence with JDBC and integration tests
+- [x] v0.3 - PostgreSQL persistence with JDBC
+- [x] v0.4 - integration tests for the JDBC repositories
 - [ ] Later: Spring, logging, additional test libraries
