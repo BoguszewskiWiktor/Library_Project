@@ -3,6 +3,7 @@ package com.library.model;
 import com.library.util.Validation;
 
 import java.time.LocalDate;
+import java.util.Objects;
 
 public class Loan {
 
@@ -70,5 +71,17 @@ public class Loan {
                 ", dueDate=" + dueDate +
                 ", returnDate=" + returnDate +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Loan loan = (Loan) o;
+        return Objects.equals(isbn, loan.isbn) && Objects.equals(memberId, loan.memberId) && Objects.equals(loanDate, loan.loanDate) && Objects.equals(dueDate, loan.dueDate) && Objects.equals(returnDate, loan.returnDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(isbn, memberId, loanDate, dueDate, returnDate);
     }
 }
