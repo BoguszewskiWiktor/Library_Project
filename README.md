@@ -2,16 +2,18 @@
 
 A console application for managing a small library: books, members and loans.
 Written in plain Java as a learning project, with a focus on clean layered
-architecture, validation, unit testing and persistence with JDBC and PostgreSQL.
+architecture, validation, automated testing and persistence with JDBC and
+PostgreSQL.
 
-**Current version: v0.3** (console app with PostgreSQL persistence and JUnit tests)
+**Current version: v0.3** (console app with PostgreSQL persistence, unit and integration tests)
 
 ## Tech stack
 
 - Java 21
 - Maven
 - PostgreSQL + JDBC (`org.postgresql:postgresql`)
-- JUnit 5 (unit tests)
+- JUnit 5 (unit and integration tests)
+- Maven Surefire (unit tests) and Failsafe (integration tests)
 - No frameworks yet (objects are wired manually in `Main`)
 
 ## Features
@@ -57,7 +59,7 @@ architecture, validation, unit testing and persistence with JDBC and PostgreSQL.
 ## Architecture
 
 ```
-config       DatabaseConfig (loads database.properties), ConnectionFactory
+config       DatabaseConfig (loads a .properties file), ConnectionFactory
 model        Book, Member (records with validation), Loan
 util         Validation helpers
 exception    LibraryException and its subclasses (unchecked)
@@ -76,7 +78,7 @@ replaced (memory, database) without changing business logic.
 Design decisions:
 
 - `Book` and `Member` are immutable records; `Loan` is a class because only
-  its return date changes.
+  its return date changes. `Loan` implements `equals` and `hashCode` by value.
 - Book availability is derived from active loans, not stored on the book.
 - A loan without a return date is active (`return_date IS NULL` in the
   database).
@@ -87,16 +89,17 @@ Design decisions:
   `BookNotAvailableException`, `MemberNotFoundException`,
   `MemberAlreadyExistsException`, `LoanNotFoundException`,
   `LoanLimitExceededException`, `StorageException`). The UI catches them and
-  prints a message. Database errors are wrapped in `StorageException`.
+  prints a message. Database errors are wrapped in `StorageException` with the
+  original cause.
 - JDBC repositories use `PreparedStatement` with parameters and
-  try-with-resources. One connection is opened per operation; there is no
-  connection pool and no transactions yet.
+  try-with-resources. One connection is opened per operation (created by
+  `ConnectionFactory`); there is no connection pool and no transactions yet.
 - The database also enforces the rules: foreign keys, `CHECK` constraints and
   a partial unique index that allows only one active loan per book.
 
 ## Database setup
 
-1. Create a PostgreSQL database named `library`.
+1. Create a PostgreSQL database named `library` (UTF-8 encoding).
 2. Run the schema script `src/main/resources/schema.sql` (creates the tables
    `books`, `members` and `loans`).
 3. Copy `src/main/resources/database.properties.example` to
@@ -122,10 +125,12 @@ Optional sample data can be loaded with `DemoData` (see `Main`).
 
 ## Tests
 
-Unit tests are written with JUnit 5 and cover:
+### Unit tests (no database needed)
+
+Written with JUnit 5 and run by Maven Surefire. They cover:
 
 - `Loan`, `Book`, `Member`: construction, validation, `isActive`, `isOverdue`,
-  `makeReturn`
+  `makeReturn`, equality
 - `InMemoryBookRepository`, `InMemoryMemberRepository`,
   `InMemoryLoanRepository`: saving, searching, filtering active loans,
   `update`, unmodifiable results
@@ -133,21 +138,42 @@ Unit tests are written with JUnit 5 and cover:
   returned loans, unavailable books), returning, reports, error cases
 
 Tests use fresh in-memory repositories for every test and fixed dates, so
-they are deterministic and do not need a database.
-
-Run all tests (requires JDK 21):
+they are deterministic.
 
 ```
 mvn test
 ```
 
-The JDBC repositories were verified with manual end-to-end scenarios.
-Automated integration tests for them are planned.
+### Integration tests (need a test database)
+
+Classes named `*IT` test the JDBC repositories against a real PostgreSQL
+database and are run by Maven Failsafe. They cover saving and reading back
+all fields (including dates, `NULL` return dates and Polish characters),
+ordering, filtering of active loans, `update`, and the database constraints
+(duplicate keys, foreign keys, one active loan per book).
+
+Setup:
+
+1. Create a separate database named `library_test` (UTF-8) and run
+   `schema.sql` in it.
+2. Copy `src/test/resources/database-test.properties.example` to
+   `src/test/resources/database-test.properties` and fill in your values.
+
+The test helper `TestDatabase` refuses to run unless the database name ends
+with `_test`, and it clears all tables before every test, so the integration
+tests can never touch the main `library` database.
+
+Run unit and integration tests together:
+
+```
+mvn verify
+```
+
+Both commands require JDK 21.
 
 ## Roadmap
 
 - [x] v0.1 - console application with in-memory storage, manual test scenarios
 - [x] v0.2 - unit tests with JUnit 5
-- [x] v0.3 - PostgreSQL persistence with JDBC
-- [ ] Integration tests for JDBC repositories
+- [x] v0.3 - PostgreSQL persistence with JDBC and integration tests
 - [ ] Later: Spring, logging, additional test libraries
