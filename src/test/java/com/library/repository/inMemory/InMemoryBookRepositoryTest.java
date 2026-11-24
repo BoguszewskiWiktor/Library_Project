@@ -1,7 +1,7 @@
-package com.library.repository;
+package com.library.repository.inMemory;
 
 import com.library.model.Book;
-import com.library.repository.inMemory.InMemoryBookRepository;
+import com.library.repository.BookRepository;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

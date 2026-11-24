@@ -1,7 +1,7 @@
-package com.library.repository;
+package com.library.repository.inMemory;
 
 import com.library.model.Loan;
-import com.library.repository.inMemory.InMemoryLoanRepository;
+import com.library.repository.LoanRepository;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;

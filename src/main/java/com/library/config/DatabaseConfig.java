@@ -16,15 +16,19 @@ public record DatabaseConfig(String url, String username, String password) {
     }
 
     public static DatabaseConfig load() {
+        return load("/database.properties");
+    }
+
+    public static DatabaseConfig load(String resourceName) {
         Properties props = new Properties();
         try (InputStream input = DatabaseConfig.class
-                .getResourceAsStream("/database.properties")) {
+                .getResourceAsStream(resourceName)) {
             if (input == null) {
-                throw new IllegalStateException("database.properties file not found");
+                throw new IllegalStateException(resourceName + " file not found");
             }
             props.load(input);
         } catch (IOException e) {
-            throw new IllegalStateException("Cannot read database.properties file", e);
+            throw new IllegalStateException("Cannot read " + resourceName + " file", e);
         }
         return new DatabaseConfig(
                 props.getProperty("db.url"),

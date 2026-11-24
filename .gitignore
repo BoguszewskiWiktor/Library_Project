@@ -159,4 +159,5 @@ buildNumber.properties
 ### My addition ###
 .idea/
 src/main/resources/database.properties
+src/test/resources/database-test.properties
 *.iml
