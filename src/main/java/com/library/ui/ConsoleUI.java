@@ -6,6 +6,7 @@ import com.library.model.Loan;
 import com.library.model.Member;
 import com.library.service.LibraryService;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public class ConsoleUI {
@@ -109,10 +110,15 @@ public class ConsoleUI {
 
     private String returnBook() {
         String isbn = consoleInput.readNonBlankString("Please enter the book ISBN: ");
-        libraryService.returnBook(isbn);
-
+        Loan returned = libraryService.returnBook(isbn);
         Book book = libraryService.findBook(isbn);
-        return book.title() + " returned successfully.";
+        BigDecimal overdueFee = libraryService.getOverdueFee(returned);
+
+        String message = String.format("%s has been returned successfully.", book.title());
+        if (overdueFee.compareTo(BigDecimal.ZERO) > 0) {
+            return message += String.format(" Late fee: %s PLN.", overdueFee);
+        }
+        return message;
     }
 
     private void showActiveLoansForMember() {
@@ -182,6 +188,11 @@ public class ConsoleUI {
 
         if (loan.getReturnDate() != null) {
             text += String.format(", Returned: %s", loan.getReturnDate());
+        }
+
+        BigDecimal fee = libraryService.getOverdueFee(loan);
+        if (fee.compareTo(BigDecimal.ZERO) > 0) {
+            text += String.format(", Late fee: %s PLN", fee);
         }
         return text;
     }

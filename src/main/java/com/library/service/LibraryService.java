@@ -8,6 +8,7 @@ import com.library.repository.BookRepository;
 import com.library.repository.LoanRepository;
 import com.library.repository.MemberRepository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,8 @@ public class LibraryService {
     private final MemberRepository memberRepository;
     private final int MAX_ACTIVE_LOANS_PER_MEMBER = 5;
     private final int LOAN_PERIOD_DAYS = 14;
+    private final BigDecimal DAILY_OVERDUE_FEE = new BigDecimal("0.50");
+    private final BigDecimal MAX_OVERDUE_FEE = new BigDecimal("25.00");
 
 
     public LibraryService
@@ -144,6 +147,19 @@ public class LibraryService {
             }
         }
         return overdueLoans;
+    }
+
+    public BigDecimal getOverdueFee(Loan loan, LocalDate today) {
+        Objects.requireNonNull(loan, "Loan must not be null");
+
+        int days = loan.overdueDays(today);
+
+        BigDecimal fee = DAILY_OVERDUE_FEE.multiply(BigDecimal.valueOf(days));
+        return fee.min(MAX_OVERDUE_FEE);
+    }
+
+    public BigDecimal getOverdueFee(Loan loan) {
+        return getOverdueFee(loan, LocalDate.now());
     }
 
     private Member getMemberOrThrow(String memberId) {

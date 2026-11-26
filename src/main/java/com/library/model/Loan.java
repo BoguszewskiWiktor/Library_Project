@@ -3,6 +3,7 @@ package com.library.model;
 import com.library.util.Validation;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 public class Loan {
@@ -60,6 +61,23 @@ public class Loan {
 
     public LocalDate getReturnDate() {
         return returnDate;
+    }
+
+    /**
+     * Returns the number of days this loan is (or was) past its due date.
+     * For an active loan the days are counted up to {@code today}; for a returned
+     * loan they are counted up to the return date, so the value no longer grows
+     * after the book is returned. Never negative.
+     */
+    public int overdueDays(LocalDate today) {
+        Validation.requireNotNull(today, "today");
+
+        // A returned loan stops accumulating overdue days on the return date.
+        LocalDate endDate = isActive() ? today : returnDate;
+        long days = ChronoUnit.DAYS.between(dueDate, endDate);
+
+        // Returning early or on time means 0, never a negative number.
+        return (int) Math.max(0, days);
     }
 
     @Override
