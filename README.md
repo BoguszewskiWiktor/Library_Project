@@ -5,7 +5,7 @@ Written in plain Java as a learning project, with a focus on clean layered
 architecture, validation, automated testing and persistence with JDBC and
 PostgreSQL.
 
-**Current version: v0.4** (console app with PostgreSQL persistence, unit and integration tests)
+**Current version: v0.5** (console app with PostgreSQL persistence, late fees, unit and integration tests)
 
 ## Tech stack
 
@@ -26,6 +26,8 @@ PostgreSQL.
 - List active loans and full loan history of a member
   (returned loans show their return date)
 - List overdue loans
+- Late fees: calculated per loan, shown in loan listings and after returning
+  a book, with the total of a member's fees under the loan history
 - List all books and all members
 - Interactive console menu with readable error messages
 - Data is stored in PostgreSQL and survives application restarts
@@ -55,6 +57,12 @@ PostgreSQL.
 - ISBN and member id must be unique
 - Required fields cannot be null or blank; the email must contain `@`
 - A loan is overdue when it is still active and the due date has passed
+- Late fee: 0.50 PLN for each day after the due date, capped at 25.00 PLN per
+  loan (reached after 50 days)
+- Returning a book on the due date or earlier costs nothing
+- For an active loan the fee is counted up to today; for a returned loan it is
+  counted up to the return date, so it stops growing after the return
+- Late fees do not block borrowing
 
 ## Architecture
 
@@ -82,6 +90,10 @@ Design decisions:
 - Book availability is derived from active loans, not stored on the book.
 - A loan without a return date is active (`return_date IS NULL` in the
   database).
+- Late fees are derived from the loan dates and are not stored in the
+  database. Amounts use `BigDecimal` (created from text, two decimal places),
+  never `double`. The calculation takes the reference date as a parameter, so
+  it can be tested with fixed dates.
 - Repositories never return `null` (they use `Optional` and empty lists) and
   return unmodifiable lists.
 - Business errors are reported with custom unchecked exceptions
@@ -130,12 +142,13 @@ Optional sample data can be loaded with `DemoData` (see `Main`).
 Written with JUnit 5 and run by Maven Surefire. They cover:
 
 - `Loan`, `Book`, `Member`: construction, validation, `isActive`, `isOverdue`,
-  `makeReturn`, equality
+  `overdueDays`, `makeReturn`, equality
 - `InMemoryBookRepository`, `InMemoryMemberRepository`,
   `InMemoryLoanRepository`: saving, searching, filtering active loans,
   `update`, unmodifiable results
 - `LibraryService`: registration, search, availability, borrowing (loan limit,
-  returned loans, unavailable books), returning, reports, error cases
+  returned loans, unavailable books), returning, reports, late fees (limits,
+  returned and active loans) and the total fees of a member, error cases
 
 Tests use fresh in-memory repositories for every test and fixed dates, so
 they are deterministic.
@@ -177,4 +190,6 @@ Both commands require JDK 21.
 - [x] v0.2 - unit tests with JUnit 5
 - [x] v0.3 - PostgreSQL persistence with JDBC
 - [x] v0.4 - integration tests for the JDBC repositories
+- [x] v0.5 - late fees
+- [ ] Next: book copies (several copies of one book can be borrowed)
 - [ ] Later: Spring, logging, additional test libraries

@@ -132,7 +132,7 @@ public class ConsoleUI {
 
         BigDecimal totalOverdueFees = libraryService.getTotalOverdueFees(memberId);
         if (totalOverdueFees.compareTo(BigDecimal.ZERO) > 0) {
-            System.out.printf("Total late fees: %s PLN.", totalOverdueFees);
+            System.out.printf("Total late fees: %s PLN. %n", totalOverdueFees);
         }
     }
 
