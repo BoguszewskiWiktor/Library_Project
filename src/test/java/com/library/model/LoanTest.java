@@ -120,4 +120,96 @@ public class LoanTest {
 
         assertThrows(IllegalArgumentException.class, () -> loan.makeReturn(LOAN_DATE.minusDays(1)));
     }
+
+    @Test
+    void overdueDays_whenActiveAndBeforeDueDate_returnsZero() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+
+        int days = loan.overdueDays(DUE_DATE.minusDays(1));
+
+        assertEquals(0, days);
+    }
+
+    @Test
+    void overdueDays_whenActiveAndOnDueDate_returnsZero() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+
+        int days = loan.overdueDays(DUE_DATE);
+
+        assertEquals(0, days);
+    }
+
+    @Test
+    void overdueDays_whenActiveOneDayAfterDueDate_returnsOne() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+
+        int days = loan.overdueDays(DUE_DATE.plusDays(1));
+
+        assertEquals(1, days);
+    }
+
+    @Test
+    void overdueDays_whenActiveSeveralDaysAfterDueDate_returnsThatNumberOfDays() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+
+        int days = loan.overdueDays(DUE_DATE.plusDays(100));
+
+        assertEquals(100, days);
+    }
+
+    @Test
+    void overdueDays_whenReturnedBeforeDueDate_returnsZero() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        loan.makeReturn(DUE_DATE.minusDays(1));
+
+        int days = loan.overdueDays(DUE_DATE.plusDays(30));
+
+        assertEquals(0, days);
+    }
+
+    @Test
+    void overdueDays_whenReturnedOnDueDate_returnsZero() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        loan.makeReturn(DUE_DATE);
+
+        int days = loan.overdueDays(DUE_DATE.plusDays(30));
+
+        assertEquals(0, days);
+    }
+
+    @Test
+    void overdueDays_whenReturnedAfterDueDate_returnsDaysUpToReturnDate() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        loan.makeReturn(DUE_DATE.plusDays(3));
+
+        int days = loan.overdueDays(DUE_DATE.plusDays(30));
+
+        assertEquals(3, days);
+    }
+
+    @Test
+    void overdueDays_whenReturned_doesNotDependOnGivenDate() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        loan.makeReturn(DUE_DATE.plusDays(5));
+
+        int days = loan.overdueDays(DUE_DATE.plusDays(15));
+
+        assertEquals(5, days);
+    }
+
+    @Test
+    void overdueDays_whenDateIsNull_throwsIllegalArgumentException() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+
+        assertThrows(IllegalArgumentException.class, () -> loan.overdueDays(null));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {-5, -1, 0, 1, 2, 15})
+    void overdueDays_whenActive_isPositiveExactlyWhenLoanIsOverdue(int daysAfterDueDate) {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate today = DUE_DATE.plusDays(daysAfterDueDate);
+
+        assertEquals(loan.isOverdue(today), loan.overdueDays(today) > 0);
+    }
 }
