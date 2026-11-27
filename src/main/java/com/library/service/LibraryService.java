@@ -162,6 +162,18 @@ public class LibraryService {
         return getOverdueFee(loan, LocalDate.now());
     }
 
+    public BigDecimal getTotalOverdueFees(String memberId) {
+        List<Loan> memberLoans = getLoanHistoryForMember(memberId);
+        LocalDate today = LocalDate.now();
+        BigDecimal total = new BigDecimal("0.00");
+
+        for (Loan loan : memberLoans) {
+            total = total.add(getOverdueFee(loan, today));
+        }
+
+        return total;
+    }
+
     private Member getMemberOrThrow(String memberId) {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId));
