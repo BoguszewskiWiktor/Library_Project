@@ -129,6 +129,11 @@ public class ConsoleUI {
     private void showLoanHistoryForMember() {
         String memberId = consoleInput.readNonBlankString("Please enter your member ID: ");
         displayLoans(libraryService.getLoanHistoryForMember(memberId));
+
+        BigDecimal totalOverdueFees = libraryService.getTotalOverdueFees(memberId);
+        if (totalOverdueFees.compareTo(BigDecimal.ZERO) > 0) {
+            System.out.printf("Total late fees: %s PLN.", totalOverdueFees);
+        }
     }
 
     private void showOverdueLoans() {
