@@ -14,6 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -110,7 +111,7 @@ public class LibraryServiceTest {
 
     @Test
     void findBook_whenBookNotExists_throwsBookNotFoundException() {
-        assertThrows(BookNotFoundException.class,  () -> libraryService.findBook("111"));
+        assertThrows(BookNotFoundException.class, () -> libraryService.findBook("111"));
     }
 
     @ParameterizedTest
@@ -154,7 +155,7 @@ public class LibraryServiceTest {
         bookRepository.save(book2);
         bookRepository.save(book3);
 
-        assertEquals(List.of(book, book2),  libraryService.searchBooks("Harry"));
+        assertEquals(List.of(book, book2), libraryService.searchBooks("Harry"));
     }
 
     @Test
@@ -267,11 +268,11 @@ public class LibraryServiceTest {
         bookRepository.save(book6);
         memberRepository.save(member2);
 
-        loanRepository.save(returnedLoan("111",  "A-2"));
-        loanRepository.save(returnedLoan("222",  "A-2"));
-        loanRepository.save(returnedLoan("333",  "A-2"));
-        loanRepository.save(returnedLoan("444",  "A-2"));
-        loanRepository.save(returnedLoan("555",  "A-2"));
+        loanRepository.save(returnedLoan("111", "A-2"));
+        loanRepository.save(returnedLoan("222", "A-2"));
+        loanRepository.save(returnedLoan("333", "A-2"));
+        loanRepository.save(returnedLoan("444", "A-2"));
+        loanRepository.save(returnedLoan("555", "A-2"));
 
         Loan loan = libraryService.borrowBook("666", "A-2");
 
@@ -287,7 +288,7 @@ public class LibraryServiceTest {
         bookRepository.save(book);
         memberRepository.save(member);
 
-        loanRepository.save(returnedLoan("111",  "A-1"));
+        loanRepository.save(returnedLoan("111", "A-1"));
 
         Loan loan = libraryService.borrowBook("111", "A-1");
 
@@ -336,7 +337,7 @@ public class LibraryServiceTest {
         bookRepository.save(book);
         memberRepository.save(member);
 
-        loanRepository.save(returnedLoan("111",  "A-1"));
+        loanRepository.save(returnedLoan("111", "A-1"));
 
         assertThrows(LoanNotFoundException.class, () -> libraryService.returnBook("111"));
     }
@@ -352,7 +353,7 @@ public class LibraryServiceTest {
         Loan loan2 = new Loan("333", "A-1", LOAN_DATE, DUE_DATE);
         loanRepository.save(loan1);
         loanRepository.save(loan2);
-        loanRepository.save(returnedLoan("222",  "A-1"));
+        loanRepository.save(returnedLoan("222", "A-1"));
 
         List<Loan> activeLoansForMember = libraryService.getActiveLoansForMember("A-1");
 
@@ -478,5 +479,199 @@ public class LibraryServiceTest {
         memberRepository.save(member2);
 
         assertEquals(List.of(member, member2), libraryService.getAllMembers());
+    }
+
+    @Test
+    void getOverdueFee_whenLoanNotOverdue_returnsZero() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate date = DUE_DATE.minusDays(2);
+        BigDecimal fee = libraryService.getOverdueFee(loan, date);
+
+        assertEquals(new BigDecimal("0.00"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenOneDayOverdue_returnsDailyFee() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate date = DUE_DATE.plusDays(1);
+        BigDecimal fee = libraryService.getOverdueFee(loan, date);
+
+        assertEquals(new BigDecimal("0.50"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenSeveralDaysOverdue_returnsDaysTimesDailyFee() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate date = DUE_DATE.plusDays(10);
+        BigDecimal fee = libraryService.getOverdueFee(loan, date);
+
+        assertEquals(new BigDecimal("5.00"), fee);
+    }
+
+    @Test
+    void getOverdueFee_when49DaysOverdue_returnsBelowLimit() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate date = DUE_DATE.plusDays(49);
+        BigDecimal fee = libraryService.getOverdueFee(loan, date);
+
+        assertEquals(new BigDecimal("24.50"), fee);
+    }
+
+    @Test
+    void getOverdueFee_when50DaysOverdue_returnsMaxFee() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate date = DUE_DATE.plusDays(50);
+        BigDecimal fee = libraryService.getOverdueFee(loan, date);
+
+        assertEquals(new BigDecimal("25.00"), fee);
+    }
+
+    @Test
+    void getOverdueFee_when51DaysOverdue_returnsMaxFee() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate date = DUE_DATE.plusDays(51);
+        BigDecimal fee = libraryService.getOverdueFee(loan, date);
+
+        assertEquals(new BigDecimal("25.00"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenFarOverdue_returnsMaxFee() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate date = DUE_DATE.plusDays(100);
+        BigDecimal fee = libraryService.getOverdueFee(loan, date);
+
+        assertEquals(new BigDecimal("25.00"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenReturnedLate_returnsFeeUpToReturnDate() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate returnDate = DUE_DATE.plusDays(3);
+        loan.makeReturn(returnDate);
+        BigDecimal fee = libraryService.getOverdueFee(loan, returnDate.plusDays(30));
+
+        assertEquals(new BigDecimal("1.50"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenReturnedLate_doesNotDependOnGivenDate() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate returnDate = DUE_DATE.plusDays(3);
+        loan.makeReturn(returnDate);
+        BigDecimal fee = libraryService.getOverdueFee(loan, DUE_DATE.plusDays(20));
+
+        assertEquals(new BigDecimal("1.50"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenReturnedOnTime_returnsZero() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        LocalDate returnDate = DUE_DATE.minusDays(3);
+        loan.makeReturn(returnDate);
+        BigDecimal fee = libraryService.getOverdueFee(loan, DUE_DATE.plusDays(10));
+
+        assertEquals(new BigDecimal("0.00"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenReturnedOnDueDate_returnsZero() {
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        loan.makeReturn(DUE_DATE);
+        BigDecimal fee = libraryService.getOverdueFee(loan, DUE_DATE.plusDays(10));
+
+        assertEquals(new BigDecimal("0.00"), fee);
+    }
+
+    @Test
+    void getOverdueFee_whenLoanIsNull_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> libraryService.getOverdueFee(null, DUE_DATE));
+    }
+
+    @Test
+    void getTotalOverdueFees_whenMemberHasNoLoans_returnsZero() {
+        memberRepository.save(member);
+
+        BigDecimal total = libraryService.getTotalOverdueFees(member.id());
+
+        assertEquals(new BigDecimal("0.00"), total);
+    }
+
+    @Test
+    void getTotalOverdueFees_whenNoLoanIsOverdue_returnsZero() {
+        memberRepository.save(member);
+
+        Loan loan = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        loan.makeReturn(DUE_DATE.minusDays(5));
+
+        BigDecimal total = libraryService.getTotalOverdueFees(member.id());
+
+        assertEquals(new BigDecimal("0.00"), total);
+    }
+
+    @Test
+    void getTotalOverdueFees_whenSeveralLoansReturnedLate_returnsSumOfFees() {
+        memberRepository.save(member);
+
+        Loan loan1 = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        Loan loan2 = new Loan("222", "A-1", LOAN_DATE, DUE_DATE);
+
+        loan1.makeReturn(DUE_DATE.plusDays(5));
+        loan2.makeReturn(DUE_DATE.plusDays(10));
+
+        loanRepository.save(loan1);
+        loanRepository.save(loan2);
+
+        assertEquals(new BigDecimal("7.50"), libraryService.getTotalOverdueFees(member.id()));
+    }
+
+    @Test
+    void getTotalOverdueFees_whenLoanExceedsLimit_countsOnlyMaxFeeForThatLoan() {
+        memberRepository.save(member);
+
+        loanRepository.save(new Loan("111", "A-1", LOAN_DATE, DUE_DATE));
+
+        assertEquals(new BigDecimal("25.00"), libraryService.getTotalOverdueFees(member.id()));
+    }
+
+    @Test
+    void getTotalOverdueFees_whenMixedLoans_returnsCorrectSum() {
+        memberRepository.save(member);
+
+        Loan loan1 = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        Loan loan2 = new Loan("222", "A-1", LOAN_DATE, DUE_DATE);
+        Loan loan3 = new Loan("333", "A-1", LOAN_DATE, DUE_DATE);
+
+        loan1.makeReturn(DUE_DATE.plusDays(10));
+        loan2.makeReturn(DUE_DATE.minusDays(5));
+        loanRepository.save(loan1);
+        loanRepository.save(loan2);
+        loanRepository.save(loan3);
+
+        assertEquals(new BigDecimal("30.00"), libraryService.getTotalOverdueFees(member.id()));
+    }
+
+    @Test
+    void getTotalOverdueFees_whenOtherMemberHasFees_doesNotCountThem() {
+        memberRepository.save(member);
+        memberRepository.save(member2);
+
+        Loan loan1 = new Loan("111", "A-1", LOAN_DATE, DUE_DATE);
+        Loan loan2 = new Loan("222", "A-2", LOAN_DATE, DUE_DATE);
+        Loan loan3 = new Loan("333", "A-2", LOAN_DATE, DUE_DATE);
+
+        loan1.makeReturn(DUE_DATE.minusDays(2));
+        loan2.makeReturn(DUE_DATE.plusDays(5));
+        loanRepository.save(loan1);
+        loanRepository.save(loan2);
+        loanRepository.save(loan3);
+
+        assertEquals(new BigDecimal("0.00"), libraryService.getTotalOverdueFees(member.id()));
+        assertEquals(new BigDecimal("27.50"), libraryService.getTotalOverdueFees(member2.id()));
+    }
+
+    @Test
+    void getTotalOverdueFees_whenMemberUnknown_throwsMemberNotFoundException() {
+        assertThrows(MemberNotFoundException.class, () -> libraryService.getTotalOverdueFees(member.id()));
     }
 }
